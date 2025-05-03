@@ -1,0 +1,18 @@
+create basic node.js server client, that supports work with two entitiess - transaction and category - transaction and category are in 1:n relation (transaction is in one category)
+
+create CRUD commands for each entity - separate controllers and dao
+
+use mongoDB as persistent storage
+
+use ajv to validate use inputs
+
+transaction should have
+- counterparty - string (required)
+- amount - amount of money spent in transaction (required)
+- date - dateTs of transaction - should not be in future (required)
+- category - id of category (required)
+- note - some addition note
+
+category should have
+- name - required
+- note - optional description

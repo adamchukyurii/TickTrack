@@ -1,0 +1,30 @@
+[
+  {
+    "id": "td01",
+    "name": "První úkolovník",
+    "state": "active",
+    "owner": "u1",
+    "memberList": ["u2"]
+  },
+  {
+    "id": "td02",
+    "name": "Druhý úkolovník",
+    "state": "archived",
+    "owner": "u1",
+    "memberList": ["u2", "u3"]
+  },
+  {
+    "id": "td03",
+    "name": "Třetí úkolovník",
+    "state": "active",
+    "owner": "u3",
+    "memberList": []
+  },
+  {
+    "id": "td04",
+    "name": "čtvrtý úkolovník",
+    "state": "archived",
+    "owner": "u2",
+    "memberList": ["u1"]
+  }
+]

@@ -1,5 +1,5 @@
 const Ajv = require("ajv");
-const ajv = new Ajv();
+const ajv = new Ajv({ addDefaults: true });
 const addFormats = require("ajv-formats").default;
 addFormats(ajv);
 
@@ -9,7 +9,7 @@ const schema = {
   type: "object",
   properties: {
     name: { type: "string" },
-    description: { type: "string" },
+    description: { type: "string", maxLength: 300 },
     runTime: {
       type: "object",
       properties: {
@@ -19,10 +19,12 @@ const schema = {
       required: ["startDate", "endDate"],
       additionalProperties: false,
     },
-    hours: { type: "number" },
+    hours: { type: "number", default: 0 },
     goal: { type: "string" },
+    tasks: { type: "number", default: 0 },
+    completeness: { type: "number", default: 0, minimum: 0, maximum: 100 },
   },
-  required: ["name", "runTime"],
+  required: ["name", "runTime", "goal"],
   additionalProperties: false,
 };
 

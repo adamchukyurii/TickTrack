@@ -1,6 +1,6 @@
 const Ajv = require("ajv");
 const addFormats = require("ajv-formats").default;
-const ajv = new Ajv();
+const ajv = new Ajv({ addDefaults: true });
 addFormats(ajv);
 
 const taskDao = require("../../dao/task-dao.js");
@@ -12,7 +12,7 @@ const schema = {
     label: { type: "string", maxLength: 150 },
     status: { type: "number" },
     date: { type: "string", format: "date" },
-    periodOfExecution: { type: "number" },
+    periodOfExecution: { type: "number", default: 0 },
     projectId: { type: "string" },
   },
   required: ["status", "label", "date", "projectId"],
@@ -34,16 +34,6 @@ async function CreateAbl(req, res) {
       return;
     }
 
-    // validate date
-    if (new Date(task.date) >= new Date()) {
-      res.status(400).json({
-        code: "invalidDate",
-        message: `date must be current day or a day in the past`,
-        validationError: ajv.errors,
-      });
-      return;
-    }
-
     // check if projectId exists
     const project = projectDao.get(task.projectId);
 
@@ -55,9 +45,30 @@ async function CreateAbl(req, res) {
       });
       return;
     }
+    // validate date
+    const taskDate = new Date(task.date);
+    const projectStartDate = new Date(project.runTime.startDate);
+    const projectEndDate = new Date(project.runTime.endDate);
+    if (taskDate < projectStartDate || taskDate > projectEndDate) {
+      throw {
+        code: "invalidDate",
+        message: `Date must be between ${project.runTime.startDate} and ${project.runTime.endDate}`,
+      };
+    }
+    const allowedStatuses = [-1, 0, 1];
+    if (!allowedStatuses.includes(task.status)) {
+      throw {
+        code: "invalidStatus",
+        message: `Status must be one of ${allowedStatuses}`,
+      };
+    }
 
+    if (task.periodOfExecution === undefined) {
+      task.periodOfExecution = 0;
+    }
     // store task to persistent storage
     task = taskDao.create(task);
+    project.tasks++;
     task.project = project;
 
     // return properly filled dtoOut

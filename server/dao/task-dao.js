@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const projectDao = require("./project-dao");
 
 const taskFolderPath = path.join(__dirname, "storage", "taskList");
 
@@ -70,6 +71,11 @@ function list(filter = {}) {
     taskList = taskList.filter(
       (item) => new Date(item.date).getMonth() === filterDate
     );
+
+    if (filter.projectId) {
+      taskList = taskList.filter((item) => item.projectId === filter.projectId);
+    }
+
     taskList.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     return taskList;

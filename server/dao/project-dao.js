@@ -26,6 +26,12 @@ function create(project) {
         message: "exists project with given name",
       };
     }
+    if (project.runTime.startDate > project.runTime.endDate) {
+      throw {
+        code: "startDateIsAfterEndDate",
+        message: "start date is after end date",
+      };
+    }
 
     project.id = crypto.randomBytes(16).toString("hex");
     const filePath = path.join(projectFolderPath, `${project.id}.json`);
@@ -80,19 +86,47 @@ function remove(projectId) {
 }
 
 // Method to list projects in a folder
-function list() {
+function list(filter = {}) {
   try {
+    const taskDao = require("./task-dao");
     const files = fs.readdirSync(projectFolderPath);
-    const projectList = files.map((file) => {
+    let projectList = files.map((file) => {
       const fileData = fs.readFileSync(
         path.join(projectFolderPath, file),
         "utf8"
       );
       return JSON.parse(fileData);
     });
+
+    const filterMonth =
+      filter.month !== undefined
+        ? filter.month
+        : filter.date
+        ? new Date(filter.date).getMonth()
+        : new Date().getMonth();
+
+    projectList = projectList.filter((project) => {
+      const startMonth = new Date(project.runTime.startDate).getMonth();
+      const endMonth = new Date(project.runTime.endDate).getMonth();
+      return startMonth === filterMonth || endMonth === filterMonth;
+    });
+
+    if (filter.projectId) {
+      projectList = projectList.map((project) => {
+        const tasks = taskDao.list({ projectId: project.id });
+        const totalHours = tasks.reduce(
+          (sum, task) => sum + (task.periodOfExecution || 0),
+          0
+        );
+        const completedTasks = tasks.filter((task) => task.status === 1);
+        const completeness = completedTasks.length / tasks.length;
+        return { ...project, totalHours, completeness };
+      });
+    }
+
     return projectList;
   } catch (error) {
-    throw { code: "failedToListProjects", project: error.project };
+    throw { code: "failedToListProjects", project: error };
   }
 }
 
